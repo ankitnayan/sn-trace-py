@@ -35,7 +35,7 @@ def init_jaeger_tracer(service_name='your-app-name'):
                 'param': 1,
             },
             'local_agent': {
-                'reporting_host': os.environ.get("REPORTING_HOST", "localhost"),
+                'reporting_host': os.environ.get("JAEGER_AGENT_HOST", "localhost"),
                 # 'reporting_port': 5775,
             },
             'logging': True,
