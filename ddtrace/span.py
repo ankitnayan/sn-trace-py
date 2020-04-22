@@ -13,6 +13,11 @@ from .constants import (
 from .ext import SpanTypes, errors, priority, net, http
 from .internal.logger import get_logger
 
+from jaeger_client import Span as JaegerSpan
+from jaeger_client import SpanContext as JaegerSpanContext
+
+
+
 
 log = get_logger(__name__)
 
@@ -130,6 +135,35 @@ class Span(object):
     def duration(self, value):
         self.duration_ns = value * 1e9
 
+    def convert_dd2jaeger(self, context):
+
+        #   References and tags in Span need to be set. Baggage in spanContext need to be set
+
+        flags = 1
+        parent_id = context._current_span.parent_id
+        trace_id = context._current_span.trace_id
+        span_id = context._current_span.span_id
+        baggage = None
+
+        context_jaeger = JaegerSpanContext(trace_id=trace_id, span_id=span_id, flags=flags, parent_id=parent_id, baggage=baggage)
+
+        start_time = context._current_span.start
+        operation_name = context._current_span.name + ": " + context._current_span.resource
+
+        span = JaegerSpan(start_time=start_time, context=context_jaeger, operation_name=operation_name, tracer=self.tracer.jaegerTracer)
+
+        for key in context._current_span.meta:
+            span.set_tag(key, context._current_span.meta[key])
+
+        span.set_tag("service", context._current_span.service)
+        span.set_tag("resource", context._current_span.resource)
+        span.set_tag("span_type", context._current_span.span_type)
+        if context._current_span.error:
+            span.set_tag("error", "true")
+
+        span.finish()
+
+
     def finish(self, finish_time=None):
         """Mark the end time of the span and submit it to the tracer.
         If the span has already been finished don't do anything
@@ -137,6 +171,8 @@ class Span(object):
         :param int finish_time: The end time of the span in seconds.
                                 Defaults to now.
         """
+        self.convert_dd2jaeger(self._context)
+        
         if self.finished:
             return
         self.finished = True

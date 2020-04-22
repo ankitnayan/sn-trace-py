@@ -103,7 +103,7 @@ def get_exts_for(name):
 # Base `setup()` kwargs without any C-extension registering
 setup(
     **dict(
-        name="ddtrace",
+        name="sntrace",
         description="Datadog tracing code",
         url="https://github.com/DataDog/dd-trace-py",
         author="Datadog, Inc.",
@@ -116,7 +116,7 @@ setup(
         # enum34 is an enum backport for earlier versions of python
         # funcsigs backport required for vendored debtcollector
         # encoding using msgpack
-        install_requires=["enum34; python_version<'3.4'", "funcsigs>=1.0.0; python_version=='2.7'", "msgpack>=0.5.0",],
+        install_requires=["enum34; python_version<'3.4'", "funcsigs>=1.0.0; python_version=='2.7'", "msgpack>=0.5.0", "jaeger-client>=4.0.0",],
         extras_require={
             # users can include opentracing by having:
             # install_requires=['ddtrace[opentracing]', ...]

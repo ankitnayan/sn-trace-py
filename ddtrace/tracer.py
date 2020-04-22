@@ -23,6 +23,24 @@ from . import compat
 
 log = get_logger(__name__)
 
+from jaeger_client import Config as JaegerConfig
+
+import os
+config = { # usually read from some yaml config
+            'sampler': {
+                'type': 'const',
+                'param': 1,
+            },
+            'local_agent': {
+                'reporting_host': os.environ.get("REPORTING_HOST", "localhost"),
+                # 'reporting_port': 5775,
+            },
+            'logging': True,
+        }
+
+def init_jaeger_tracer(service_name='your-app-name'):
+    config = JaegerConfig(config={}, service_name=service_name, validate=True)
+    return config.initialize_tracer()
 
 def _parse_dogstatsd_url(url):
     if url is None:
@@ -85,12 +103,15 @@ class Tracer(object):
         self.sampler = None
         self.priority_sampler = None
         self._runtime_worker = None
+        self.jaegerTracer = init_jaeger_tracer("django-test-project")
 
         uds_path = None
         https = None
         hostname = self.DEFAULT_HOSTNAME
         port = self.DEFAULT_PORT
         writer = None
+
+
 
         if self._is_agentless_environment() and url is None:
             writer = LogWriter()
