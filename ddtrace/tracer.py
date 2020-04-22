@@ -26,7 +26,10 @@ log = get_logger(__name__)
 from jaeger_client import Config as JaegerConfig
 
 import os
-config = { # usually read from some yaml config
+
+
+def init_jaeger_tracer(service_name='your-app-name'):
+    config = { # usually read from some yaml config
             'sampler': {
                 'type': 'const',
                 'param': 1,
@@ -36,10 +39,8 @@ config = { # usually read from some yaml config
                 # 'reporting_port': 5775,
             },
             'logging': True,
-        }
-
-def init_jaeger_tracer(service_name='your-app-name'):
-    config = JaegerConfig(config={}, service_name=service_name, validate=True)
+    }
+    config = JaegerConfig(config=config, service_name=service_name, validate=True)
     return config.initialize_tracer()
 
 def _parse_dogstatsd_url(url):
@@ -103,7 +104,7 @@ class Tracer(object):
         self.sampler = None
         self.priority_sampler = None
         self._runtime_worker = None
-        self.jaegerTracer = init_jaeger_tracer("django-test-project")
+        self.jaegerTracer = init_jaeger_tracer(os.environ.get("JAEGER_SERVICE_NAME", "python"))
 
         uds_path = None
         https = None
